@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Logging;
+using NLog.Extensions.Logging;
 
 namespace parserJSON;
 
@@ -6,28 +7,16 @@ internal class Program
 {
     public static void Main(string[] args)
     {
-        Console.WriteLine("Hello, World!");
-        DataList data = new DataList();
-
-        var listData = readDataFromFile();
-        var resultData = listData
-            .GroupBy(x => new { x.rec_id, x.timestamp })
-            .Select(g => g.Count() > 1 ? g.First() : g.Single())
-            .ToList();
-
-        writeDataToFile(resultData);
-    }
-
-    public static List<Data> readDataFromFile()
-    {
-        string json = File.ReadAllText("file.json");
-        List<Data> datas = JsonConvert.DeserializeObject<List<Data>>(json);
-        return datas;
-    }
-
-    public static void writeDataToFile(List<Data> resultData)
-    {
-        string json = JsonConvert.SerializeObject(resultData, Formatting.Indented);
-        File.WriteAllText("fileResult.json", json);
+        ILoggerFactory loggerFactory = LoggerFactory.Create(builder => builder.AddNLog());
+        Worker worker = new Worker(loggerFactory);
+        JsonManager manager = new JsonManager(loggerFactory);
+        var logger = loggerFactory.CreateLogger<Program>();
+        logger.LogInformation("Программа запустилась корректно");
+        List<Data> listData = manager.readDataFromFile();
+        logger.LogInformation($"Чтение {listData.Count} данных завершено");
+        var resultData = worker.removeDublicate(listData);
+        logger.LogInformation($"Найдено дубликатов {listData.Count-resultData.Count}");
+        manager.writeDataToFile(resultData);
+        logger.LogInformation($"Всего записано - {resultData.Count} уникальных данных");
     }
 }
