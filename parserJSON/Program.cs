@@ -24,7 +24,8 @@ internal class Program
         {
             _logger.LogInformation("Старт программы");
 
-            Console.WriteLine("Введите путь \nимя файла в корневой директории \nПусто, если стандартный файл JSON");
+            Console.WriteLine(
+                "Введите: \n - Абсолютный путь \n - Имя файла в корневой директории \n - Пусто, если стандартный файл JSON");
             var pathLoad = Console.ReadLine();
             if (!String.IsNullOrEmpty(pathLoad))
             {
@@ -41,7 +42,8 @@ internal class Program
 
             var resultData = _worker.RemoveDuplicate(listData);
 
-            Console.WriteLine("Введите путь \nимя файла в корневой директории \nПусто, если стандартный файл JSON");
+            Console.WriteLine(
+                "Введите: \n - Абсолютный путь \n - Имя файла в корневой директории \n - Пусто, если стандартный файл JSON");
             var pathSave = Console.ReadLine();
             await _manager.WriteDataToFileAsync(resultData, pathSave);
 

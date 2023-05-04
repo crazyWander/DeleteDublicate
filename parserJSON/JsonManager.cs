@@ -7,8 +7,8 @@ namespace parserJSON;
 public class JsonManager
 {
     private readonly ILogger<JsonManager> _logger;
-    private readonly string _defaultLoadedFile = "file.json";
-    private readonly string defaultSaveFile = "resultFile.json";
+    private readonly string _defaultLoadedFile = @"Resourses\ShortSummary.json";
+    private readonly string _defaultSaveFile = @"Resourses\resultFile.json";
 
     public JsonManager(ILogger<JsonManager> logger)
     {
@@ -47,7 +47,7 @@ public class JsonManager
     {
         try
         {
-            saveFile = string.IsNullOrEmpty(saveFile) ? defaultSaveFile : saveFile;
+            saveFile = string.IsNullOrEmpty(saveFile) ? _defaultSaveFile : saveFile;
             saveFile = Path.GetFullPath(saveFile);
             
             _logger.LogInformation($"Начало записи в файл - {saveFile}");
