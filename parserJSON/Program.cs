@@ -10,7 +10,7 @@ internal class Program
     private readonly ILogger<Program> _logger;
     private readonly Worker _worker;
     private readonly JsonManager _manager;
-    
+
     public Program(ILogger<Program> logger, Worker worker, JsonManager manager)
     {
         _logger = logger;
@@ -22,10 +22,19 @@ internal class Program
     {
         try
         {
-            _logger.LogInformation("Программа запустилась корректно");
-            
+            _logger.LogInformation("Старт программы");
+
             Console.WriteLine("Введите путь \nимя файла в корневой директории \nПусто, если стандартный файл JSON");
             var pathLoad = Console.ReadLine();
+            if (!String.IsNullOrEmpty(pathLoad))
+                while (!File.Exists(pathLoad))
+                {
+                    Console.WriteLine($"Файл не найден по пути: {Path.GetFullPath(pathLoad)}");
+
+                    Console.WriteLine("Введите корректный путь к файлу: ");
+                    pathLoad = Console.ReadLine();
+                }
+
             List<Data> listData = await _manager.ReadDataFromFileAsync(pathLoad);
 
             var resultData = _worker.RemoveDuplicate(listData);
@@ -35,8 +44,11 @@ internal class Program
             await _manager.WriteDataToFileAsync(resultData, pathSave);
 
             _logger.LogInformation("Программа завершила свою работу");
+
+            Console.WriteLine("Нажмите клавишу, чтобы закрыть программу");
+            Console.ReadKey();
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Произошла ошибка при выполнении программы");
         }
@@ -48,18 +60,19 @@ internal class Program
             .SetBasePath(System.IO.Directory.GetCurrentDirectory())
             .AddJsonFile("Nlog.json", optional: true, reloadOnChange: true)
             .Build();
+
         servise.AddLogging(configure => configure.AddNLog(config));
 
         servise.AddSingleton<Worker>();
         servise.AddSingleton<JsonManager>();
-        
         servise.AddSingleton<Program>();
     }
+
     public static async Task Main(string[] args)
     {
         var servise = new ServiceCollection();
         ConfigureServices(servise);
-        
+
         using var serviceProvider = servise.BuildServiceProvider();
 
         var program = serviceProvider.GetService<Program>();

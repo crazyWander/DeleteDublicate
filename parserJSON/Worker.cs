@@ -8,6 +8,7 @@ namespace parserJSON;
 public class Worker
 {
     private readonly ILogger<Worker> _logger;
+
     public Worker(ILogger<Worker> logger)
     {
         _logger = logger;

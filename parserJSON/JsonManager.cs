@@ -7,6 +7,8 @@ namespace parserJSON;
 public class JsonManager
 {
     private readonly ILogger<JsonManager> _logger;
+    private readonly string _defaultLoadedFile = "file.json";
+    private readonly string defaultSaveFile = "resultFile.json";
 
     public JsonManager(ILogger<JsonManager> logger)
     {
@@ -22,8 +24,9 @@ public class JsonManager
     {
         try
         {
-            loadedFile = string.IsNullOrEmpty(loadedFile) ? "file.json" : loadedFile;
-            _logger.LogInformation("Начало чтения файла");
+            loadedFile = string.IsNullOrEmpty(loadedFile) ? _defaultLoadedFile : loadedFile;
+            loadedFile = Path.GetFullPath(loadedFile);
+            _logger.LogInformation($"Начало чтения файла - {loadedFile}");
             string json = File.ReadAllText(loadedFile);
             List<Data> data = JsonConvert.DeserializeObject<List<Data>>(json);
             _logger.LogInformation($"Чтение {data.Count} данных завершено");
@@ -35,13 +38,14 @@ public class JsonManager
             throw;
         }
     }
-    
+
     public async Task WriteDataToFileAsync(List<Data> resultData, string? saveFile)
     {
         try
         {
-            saveFile = string.IsNullOrEmpty(saveFile) ? "file.json" : saveFile;
-            _logger.LogInformation("Начало записи в файл");
+            saveFile = string.IsNullOrEmpty(saveFile) ? defaultSaveFile : saveFile;
+            saveFile = Path.GetFullPath(saveFile);
+            _logger.LogInformation($"Начало записи в файл - {saveFile}");
             string json = JsonConvert.SerializeObject(resultData, Formatting.Indented);
             File.WriteAllText(saveFile, json);
             _logger.LogInformation($"Всего записано - {resultData.Count} уникальных данных");
@@ -51,6 +55,5 @@ public class JsonManager
             _logger.LogError(e, "Произошла ошибка при выполнении программы");
             throw;
         }
-        
     }
 }
