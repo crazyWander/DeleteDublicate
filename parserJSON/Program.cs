@@ -35,6 +35,11 @@ internal class Program
 
                     Console.WriteLine("Введите корректный путь к файлу: ");
                     pathLoad = Console.ReadLine();
+                    
+                    if (String.IsNullOrEmpty(pathLoad))
+                    {
+                        break;
+                    }
                 }
             }
 
