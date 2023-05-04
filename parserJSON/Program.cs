@@ -27,6 +27,7 @@ internal class Program
             Console.WriteLine("Введите путь \nимя файла в корневой директории \nПусто, если стандартный файл JSON");
             var pathLoad = Console.ReadLine();
             if (!String.IsNullOrEmpty(pathLoad))
+            {
                 while (!File.Exists(pathLoad))
                 {
                     Console.WriteLine($"Файл не найден по пути: {Path.GetFullPath(pathLoad)}");
@@ -34,6 +35,7 @@ internal class Program
                     Console.WriteLine("Введите корректный путь к файлу: ");
                     pathLoad = Console.ReadLine();
                 }
+            }
 
             List<Data> listData = await _manager.ReadDataFromFileAsync(pathLoad);
 

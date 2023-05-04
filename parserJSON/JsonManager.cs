@@ -26,10 +26,14 @@ public class JsonManager
         {
             loadedFile = string.IsNullOrEmpty(loadedFile) ? _defaultLoadedFile : loadedFile;
             loadedFile = Path.GetFullPath(loadedFile);
+            
             _logger.LogInformation($"Начало чтения файла - {loadedFile}");
+            
             string json = File.ReadAllText(loadedFile);
             List<Data> data = JsonConvert.DeserializeObject<List<Data>>(json);
+            
             _logger.LogInformation($"Чтение {data.Count} данных завершено");
+            
             return data;
         }
         catch (Exception e)
@@ -45,9 +49,12 @@ public class JsonManager
         {
             saveFile = string.IsNullOrEmpty(saveFile) ? defaultSaveFile : saveFile;
             saveFile = Path.GetFullPath(saveFile);
+            
             _logger.LogInformation($"Начало записи в файл - {saveFile}");
+            
             string json = JsonConvert.SerializeObject(resultData, Formatting.Indented);
             File.WriteAllText(saveFile, json);
+            
             _logger.LogInformation($"Всего записано - {resultData.Count} уникальных данных");
         }
         catch (Exception e)
