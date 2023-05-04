@@ -1,22 +1,68 @@
 ﻿using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 
 namespace parserJSON;
 
 internal class Program
 {
-    public static void Main(string[] args)
+    private readonly ILogger<Program> _logger;
+    private readonly Worker _worker;
+    private readonly JsonManager _manager;
+    
+    public Program(ILogger<Program> logger, Worker worker, JsonManager manager)
     {
-        ILoggerFactory loggerFactory = LoggerFactory.Create(builder => builder.AddNLog());
-        Worker worker = new Worker(loggerFactory);
-        JsonManager manager = new JsonManager(loggerFactory);
-        var logger = loggerFactory.CreateLogger<Program>();
-        logger.LogInformation("Программа запустилась корректно");
-        List<Data> listData = manager.readDataFromFile();
-        logger.LogInformation($"Чтение {listData.Count} данных завершено");
-        var resultData = worker.removeDublicate(listData);
-        logger.LogInformation($"Найдено дубликатов {listData.Count-resultData.Count}");
-        manager.writeDataToFile(resultData);
-        logger.LogInformation($"Всего записано - {resultData.Count} уникальных данных");
+        _logger = logger;
+        _worker = worker;
+        _manager = manager;
+    }
+
+    public async Task RunAsynk()
+    {
+        try
+        {
+            _logger.LogInformation("Программа запустилась корректно");
+            
+            Console.WriteLine("Введите путь \nимя файла в корневой директории \nПусто, если стандартный файл JSON");
+            var pathLoad = Console.ReadLine();
+            List<Data> listData = await _manager.ReadDataFromFileAsync(pathLoad);
+
+            var resultData = _worker.RemoveDuplicate(listData);
+
+            Console.WriteLine("Введите путь \nимя файла в корневой директории \nПусто, если стандартный файл JSON");
+            var pathSave = Console.ReadLine();
+            await _manager.WriteDataToFileAsync(resultData, pathSave);
+
+            _logger.LogInformation("Программа завершила свою работу");
+        }
+        catch(Exception ex)
+        {
+            _logger.LogError(ex, "Произошла ошибка при выполнении программы");
+        }
+    }
+
+    private static void ConfigureServices(IServiceCollection servise)
+    {
+        var config = new ConfigurationBuilder()
+            .SetBasePath(System.IO.Directory.GetCurrentDirectory())
+            .AddJsonFile("Nlog.json", optional: true, reloadOnChange: true)
+            .Build();
+        servise.AddLogging(configure => configure.AddNLog(config));
+
+        servise.AddSingleton<Worker>();
+        servise.AddSingleton<JsonManager>();
+        
+        servise.AddSingleton<Program>();
+    }
+    public static async Task Main(string[] args)
+    {
+        var servise = new ServiceCollection();
+        ConfigureServices(servise);
+        
+        using var serviceProvider = servise.BuildServiceProvider();
+
+        var program = serviceProvider.GetService<Program>();
+        await program.RunAsynk();
     }
 }
